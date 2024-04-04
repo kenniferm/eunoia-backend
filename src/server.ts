@@ -88,18 +88,28 @@ export class Server {
           console.error("Closing llm ws for: ", callId);
         });
 
-        ws.on("message", async (data: RawData, isBinary: boolean) => {
-          console.log(data.toString());
+        ws.on('message', async (data: RawData, isBinary: boolean) => {
           if (isBinary) {
-            console.error("Got binary message instead of text in websocket.");
-            ws.close(1002, "Cannot find corresponding Retell LLM.");
+            console.error("Received binary message, expected text.");
+            // Consider how to handle binary messages, if they're expected at all.
+            return;
           }
+        
+          let request;
           try {
-            const request: RetellRequest = JSON.parse(data.toString());
-            llmClient.DraftResponse(request, ws);
+            request = JSON.parse(data.toString());
           } catch (err) {
-            console.error("Error in parsing LLM websocket message: ", err);
-            ws.close(1002, "Cannot parse incoming message.");
+            console.error("Error parsing JSON from message:", data.toString(), err);
+            // Optionally, send an error response back to the client instead of closing.
+            return;
+          }
+        
+          // Proceed with handling the request now that it's successfully parsed
+          try {
+            llmClient.DraftResponse(request, ws);
+          } catch (error) {
+            console.error("Error handling request:", request, error);
+            // Handle the error appropriately without necessarily closing the WS
           }
         });
       },
