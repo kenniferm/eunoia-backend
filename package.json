@@ -2,17 +2,22 @@
   "name": "retell-backend-node-demo",
   "version": "1.0.0",
   "description": "Example backend written in node. This aims to help people get started connecting their LLM.",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
+    "start": "node build/index.js",
+    "build": "tsc",
     "dev": "NODE_ENV=development nodemon src/index.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.11",
+    "basic-auth": "^2.0.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.1",
-    "express": "^4.18.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-basic-auth": "^1.2.1",
+    "express-session": "^1.18.0",
     "express-ws": "^5.0.2",
     "firebase": "^10.10.0",
     "openai": "^4.26.0",
@@ -22,8 +27,10 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/express-session": "^1.18.0",
     "@types/express-ws": "^3.0.4",
     "nodemon": "^3.0.3",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^4.5.4"
   }
 }
