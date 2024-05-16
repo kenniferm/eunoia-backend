@@ -19,7 +19,7 @@ Check this [Youtube Tutorial](https://youtu.be/Tz969io9cPc?feature=shared&t=344)
    - OpenAI is the most widely used one, although the latency can vary.
    - OpenRouter allows you to choose between tons of Open Source AI Models.
 
-3. Install dependencies
+2. Install dependencies
 
 ```bash
 npm install
@@ -28,7 +28,7 @@ npm install
 3. In another bash, use ngrok to expose this port to the public network
 
 ```bash
-ngrok http 8080
+ngrok http 3000
 ```
 
 4. Start the server

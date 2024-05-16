@@ -2,24 +2,19 @@ import { Request, Response } from "express";
 import VoiceResponse from "twilio/lib/twiml/VoiceResponse";
 import expressWs from "express-ws";
 import twilio, { Twilio } from "twilio";
-import { RetellClient } from "retell-sdk";
-import {
-  AudioWebsocketProtocol,
-  AudioEncoding,
-} from "retell-sdk/models/components";
+import Retell from "retell-sdk";
+import { RegisterCallResponse } from "retell-sdk/src/resources";
 
 export class TwilioClient {
   private twilio: Twilio;
-  private retellClient: RetellClient;
+  private retellClient: Retell;
 
-  constructor() {
+  constructor(retellClient: Retell) {
     this.twilio = twilio(
       process.env.TWILIO_ACCOUNT_ID,
       process.env.TWILIO_AUTH_TOKEN,
     );
-    this.retellClient = new RetellClient({
-      apiKey: process.env.RETELL_API_KEY,
-    });
+    this.retellClient = retellClient;
   }
 
   // Create a new phone number and route it to use this server.
@@ -43,7 +38,7 @@ export class TwilioClient {
   };
 
   // Update this phone number to use provided agent id. Also updates voice URL address.
-  RegisterPhoneAgent = async (number: string, agentId: string) => {
+  RegisterInboundAgent = async (number: string, agentId: string) => {
     try {
       const phoneNumberObjects = await this.twilio.incomingPhoneNumbers.list();
       let numberSid;
@@ -117,34 +112,39 @@ export class TwilioClient {
     }
   };
 
-  // Twilio voice webhook
+  /* Twilio voice webhook. This will be called whenever there is an incoming or outgoing call. 
+     Register call with Retell at this stage and pass in returned call_id to Retell*/
   ListenTwilioVoiceWebhook = (app: expressWs.Application) => {
     app.post(
       "/twilio-voice-webhook/:agent_id",
       async (req: Request, res: Response) => {
-        const agentId = req.params.agent_id;
-        const answeredBy = req.body.AnsweredBy;
+        const agent_id = req.params.agent_id;
+        const { AnsweredBy, from, to, callSid } = req.body;
         try {
-          // Respond with TwiML to hang up the call if its machine
-          if (answeredBy && answeredBy === "machine_start") {
+          // Respond with TwiML to hang up the call if its machine)
+          if (AnsweredBy && AnsweredBy === "machine_start") {
             this.EndCall(req.body.CallSid);
             return;
-          } else if (answeredBy) {
+          } else if (AnsweredBy) {
             return;
           }
 
-          const callResponse = await this.retellClient.registerCall({
-            agentId: agentId,
-            audioWebsocketProtocol: AudioWebsocketProtocol.Twilio,
-            audioEncoding: AudioEncoding.Mulaw,
-            sampleRate: 8000,
-          });
-          if (callResponse.callDetail) {
+          const callResponse: RegisterCallResponse =
+            await this.retellClient.call.register({
+              agent_id: agent_id,
+              audio_websocket_protocol: "twilio",
+              audio_encoding: "mulaw",
+              sample_rate: 8000,
+              from_number: from,
+              to_number: to,
+              metadata: { twilio_call_sid: callSid },
+            });
+          if (callResponse) {
             // Start phone call websocket
             const response = new VoiceResponse();
             const start = response.connect();
             const stream = start.stream({
-              url: `wss://api.retellai.com/audio-websocket/${callResponse.callDetail.callId}`,
+              url: `wss://api.retellai.com/audio-websocket/${callResponse.call_id}`,
             });
             res.set("Content-Type", "text/xml");
             res.send(response.toString());

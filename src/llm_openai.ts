@@ -1,6 +1,12 @@
 import OpenAI from "openai";
 import { WebSocket } from "ws";
-import { RetellRequest, RetellResponse, Utterance } from "./types";
+import {
+  CustomLlmRequest,
+  CustomLlmResponse,
+  ReminderRequiredRequest,
+  ResponseRequiredRequest,
+  Utterance,
+} from "./types";
 
 // Define the greeting message of the agent. If you don't want the agent speak first, set to empty string ""
 const beginSentence =
@@ -21,7 +27,8 @@ export class DemoLlmClient {
 
   // First sentence requested
   BeginMessage(ws: WebSocket) {
-    const res: RetellResponse = {
+    const res: CustomLlmResponse = {
+      response_type: "response",
       response_id: 0,
       content: beginSentence,
       content_complete: true,
@@ -46,7 +53,9 @@ export class DemoLlmClient {
     return result;
   }
 
-  private PreparePrompt(request: RetellRequest) {
+  private PreparePrompt(
+    request: ResponseRequiredRequest | ReminderRequiredRequest,
+  ) {
     let transcript = this.ConversationToChatRequestMessages(request.transcript);
     let requestMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] =
       [
@@ -71,13 +80,10 @@ export class DemoLlmClient {
     return requestMessages;
   }
 
-  async DraftResponse(request: RetellRequest, ws: WebSocket) {
-    console.clear();
-
-    if (request.interaction_type === "update_only") {
-      // process live transcript update if needed
-      return;
-    }
+  async DraftResponse(
+    request: ResponseRequiredRequest | ReminderRequiredRequest,
+    ws: WebSocket,
+  ) {
     const requestMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] =
       this.PreparePrompt(request);
 
@@ -95,7 +101,8 @@ export class DemoLlmClient {
         if (event.choices.length >= 1) {
           let delta = event.choices[0].delta;
           if (!delta || !delta.content) continue;
-          const res: RetellResponse = {
+          const res: CustomLlmResponse = {
+            response_type: "response",
             response_id: request.response_id,
             content: delta.content,
             content_complete: false,
@@ -107,7 +114,8 @@ export class DemoLlmClient {
     } catch (err) {
       console.error("Error in gpt stream: ", err);
     } finally {
-      const res: RetellResponse = {
+      const res: CustomLlmResponse = {
+        response_type: "response",
         response_id: request.response_id,
         content: "",
         content_complete: true,

@@ -4,12 +4,12 @@
     "strictPropertyInitialization": false,
     "strictNullChecks": false,
     "rootDir": "./src",
-    "outDir": "./dist",
+    "outDir": "./build",
     "target": "ES2017",
     "module": "commonjs",
     "esModuleInterop": true,
     "lib": ["ES2021.String", "dom", "es2017"],
-    "typeRoots": ["./node_modules/@types", "./types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"]
 }

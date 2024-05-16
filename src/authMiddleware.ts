@@ -1,5 +1,12 @@
-import express, { Request, Response, NextFunction } from 'express';
-import session from 'express-session';
+import { Request, Response, NextFunction } from 'express';
+import session, { Session } from 'express-session';
+
+// Extend the Session interface
+declare module 'express-session' {
+  interface Session {
+    loggedIn?: boolean;
+  }
+}
 
 const users: { [key: string]: string } = {
   user1: 'password1',
