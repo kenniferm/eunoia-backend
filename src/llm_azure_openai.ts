@@ -23,8 +23,8 @@ export class DemoLlmClient {
 
   constructor() {
     this.client = new OpenAIClient(
-      process.env.AZURE_OPENAI_ENDPOINT,
-      new AzureKeyCredential(process.env.AZURE_OPENAI_KEY),
+      process.env.AZURE_OPENAI_ENDPOINT!,
+      new AzureKeyCredential(process.env.AZURE_OPENAI_KEY!),
     );
   }
 
@@ -89,7 +89,7 @@ export class DemoLlmClient {
 
     try {
       let events = await this.client.streamChatCompletions(
-        process.env.AZURE_OPENAI_DEPLOYMENT_NAME,
+        process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
         requestMessages,
         option,
       );
