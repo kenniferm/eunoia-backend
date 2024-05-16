@@ -28,7 +28,7 @@ export class Server {
     this.app.use(express.urlencoded({ extended: true }));
 
     this.retellClient = new Retell({
-      apiKey: process.env.RETELL_API_KEY,
+      apiKey: process.env.RETELL_API_KEY!,
     });
     this.twilioClient = new TwilioClient(this.retellClient);
     this.twilioClient.ListenTwilioVoiceWebhook(this.app);
@@ -57,7 +57,7 @@ export class Server {
       if (
         !Retell.verify(
           JSON.stringify(req.body),
-          process.env.RETELL_API_KEY,
+          process.env.RETELL_API_KEY!,
           req.headers["x-retell-signature"] as string,
         )
       ) {
